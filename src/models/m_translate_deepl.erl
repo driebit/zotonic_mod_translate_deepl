@@ -20,11 +20,19 @@
 -module(m_translate_deepl).
 
 -export([
+    m_get/3,
     is_configured/1,
     translate/4
     ]).
 
 -include_lib("zotonic_core/include/zotonic.hrl").
+
+
+m_get([ <<"is_configured">> | Rest ], _Msg, Context) ->
+    {ok, {is_configured(Context), Rest}};
+m_get(_Path, _Msg, _Context) ->
+    {error, enoent}.
+
 
 -spec is_configured( Context ) -> boolean() when
     Context :: z:context().
@@ -92,6 +100,26 @@ translate_1(ApiKey, SourceLanguage, TargetLanguage, Texts, Context) ->
                 target_language => TargetLanguage
             }),
             {error, unknown_response};
+        {error, {400, _Url, _Hs, _Size, ErrorBody}} ->
+            Reason = case jsx:decode(ErrorBody) of
+                #{ <<"message">> := <<"Value for 'source_lang' not supported.">> } ->
+                    source_language;
+                #{ <<"message">> := <<"Value for 'target_lang' not supported.">> } ->
+                    target_language;
+                #{ <<"message">> := Message } ->
+                    Message;
+                R ->
+                    R
+            end,
+            ?LOG_ERROR(#{
+                in => zotonic_mod_driebit_deepl,
+                text => <<"Error result from DeepL">>,
+                result => error,
+                reason => Reason,
+                source_language => SourceLanguage,
+                target_language => TargetLanguage
+            }),
+            {error, Reason};
         {error, Reason} ->
             ?LOG_ERROR(#{
                 in => zotonic_mod_driebit_deepl,
