@@ -39,7 +39,12 @@ observe_translate(#translate{
     }, Context) ->
     case z_acl:is_allowed(use, ?MODULE, Context) of
         true ->
-            m_translate_deepl:translate(From, To, Texts, Context);
+            case m_translate_deepl:translate(From, To, Texts, Context) of
+                {ok, _} = Ok ->
+                    Ok;
+                {error, _} ->
+                    undefined
+            end;
         false ->
             ?LOG_INFO(#{
                 in => ?MODULE,
