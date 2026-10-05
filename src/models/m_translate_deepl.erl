@@ -120,6 +120,8 @@ translate_1(ApiKey, SourceLanguage, TargetLanguage, Texts, Context) ->
                 target_language => TargetLanguage
             }),
             {error, Reason};
+        {error, {456, _Url, _Hs, _Size, _ErrorBody}} ->
+            {error, quota_exceeded};
         {error, Reason} ->
             ?LOG_ERROR(#{
                 in => zotonic_mod_driebit_deepl,
