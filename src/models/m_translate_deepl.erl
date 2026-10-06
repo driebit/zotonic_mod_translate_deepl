@@ -18,6 +18,61 @@
 %% limitations under the License.
 
 -module(m_translate_deepl).
+-moduledoc(#{
+    zotonic_keywords => [
+        "reference", "backend_developer", "model",
+        "localization_and_translation", "api_and_integration", "language_code"
+    ]
+}).
+-moduledoc("
+Translates lists of texts using the DeepL API and exposes whether an API key
+has been configured.
+
+## Model API
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `get` | `is_configured` | Return whether `mod_translate_deepl.api_key` is nonempty. |
+
+Templates can read `m.translate_deepl.is_configured`. This public read returns
+only a boolean; it does not disclose the API key or verify its validity with
+DeepL. Unknown model paths return `{error, enoent}`. Translation itself is not
+exposed as a model API path.
+
+## Erlang API
+
+`is_configured(Context)` performs the same local configuration check.
+
+`translate(SourceLanguage, TargetLanguage, Texts, Context)` accepts a list of
+binary texts and returns `{ok, TranslatedTexts}` or `{error, Reason}`. For
+example, an already authorized caller can translate two texts with:
+
+```erlang
+m_translate_deepl:translate(en, nl, [<<\"Hello\">>, <<\"Welcome\">>], Context).
+```
+
+Language codes are converted to binaries before sending the request. An
+undefined or empty source language, `x-default`, or `x-none` omits the source
+language from the request so DeepL can detect it. The target language is
+required. HTML tag handling is enabled, with `code` elements ignored.
+
+The model posts JSON to `/v2/translate`, using the configured API key for
+`DeepL-Auth-Key` authorization. A key containing `:fx` selects the free
+endpoint; other keys select the paid endpoint.
+
+A missing key returns `{error, api_key}`. Recognized unsupported-language
+responses return `{error, source_language}` or `{error, target_language}`.
+Unexpected successful response shapes return `{error, unknown_response}`;
+other request failures are returned as `{error, Reason}`. Requests are not
+retried by this model.
+
+## Access control
+
+The exported `translate/4` function does not perform an ACL check. Callers must
+have authorized the operation before calling it. The `mod_translate_deepl`
+notification observer checks `use.mod_translate_deepl` and is the integration
+point for Zotonic's translation service.
+").
 
 -export([
     m_get/3,
