@@ -20,7 +20,8 @@
 -module(mod_translate_deepl).
 -moduledoc(#{
     zotonic_keywords => [
-        "reference", "module", "localization_and_translation",
+        "reference", "content_editor", "module", "localization_and_translation",
+        "translated_text", "language_code",
         "api_and_integration", "configuration", "authorization_and_access_control"
     ]
 }).
