@@ -21,7 +21,7 @@
 -moduledoc(#{
     zotonic_keywords => [
         "reference", "backend_developer", "model",
-        "localization_and_translation", "api_and_integration", "language_code"
+        "localization_and_translation", "translated_text", "language_code", "api_and_integration"
     ]
 }).
 -moduledoc("
